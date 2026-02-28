@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Bodega } from '../types';
 
 interface FormBodegaProps {

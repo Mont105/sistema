@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Printer, Download } from 'lucide-react';
-import { Button } from '../components/Button';
-import { Select } from '../components/Select';
-import { Badge } from '../components/Badge';
+import { Button } from '../components/ui/button';
+import { Select } from '../components/ui/select';
+import { Badge } from '../components/ui/badge';
 import { libros, bodegas, calcularStockPorBodega } from '../lib/mockData';
 
 type ReportTab = 'stock' | 'bajoStock' | 'kardex';
