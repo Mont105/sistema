@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
-import { Button } from '../components/Button';
-import { TablaInventario } from '../components/TablaInventario';
-import { FormLibro } from '../components/FormLibro';
-import { Badge } from '../components/Badge';
+import { Button } from '@/components/ui/button';
+import { TablaInventario } from '@/components/TablaInventario';
+import { FormLibro } from '@/components/FormLibro';
+import { Badge } from '@/components/ui/badge';
+import { createLibro, getLibros } from '@/lib/apiClient';
 import { libros as initialLibros, generos } from '../lib/mockData';
 import { Libro } from '../types';
 
@@ -12,27 +13,45 @@ export function LibrosPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingLibro, setEditingLibro] = useState<Libro | undefined>();
 
-  const handleSave = (libro: Partial<Libro>) => {
+  useEffect(() => {
+    let isMounted = true;
+    void getLibros()
+      .then((data) => {
+        if (isMounted) {
+          setLibros(data);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLibros(initialLibros);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSave = async (libro: Partial<Libro>) => {
     if (editingLibro) {
       setLibros(libros.map((l) => (l.id === editingLibro.id ? { ...l, ...libro } : l)));
     } else {
-      const newLibro: Libro = {
-        id: Date.now().toString(),
-        isbn: libro.isbn!,
-        titulo: libro.titulo!,
-        autor: libro.autor!,
-        editorial: libro.editorial || '',
-        anio: libro.anio || new Date().getFullYear(),
-        genero: libro.genero!,
-        unidad: libro.unidad || 'Ejemplar',
-        costo: libro.costo || 0,
+      const created = await createLibro({
+        isbn: libro.isbn ?? '',
+        titulo: libro.titulo ?? '',
+        autor: libro.autor ?? '',
+        editorial: libro.editorial ?? '',
+        anio: libro.anio ?? new Date().getFullYear(),
+        genero: libro.genero ?? '',
+        unidad: libro.unidad ?? 'Ejemplar',
+        costo: libro.costo ?? 0,
         precio: libro.precio,
         activo: libro.activo ?? true,
-        stockMinimo: libro.stockMinimo || 5,
-        createdAt: new Date().toISOString(),
-      };
-      setLibros([...libros, newLibro]);
+        stockMinimo: libro.stockMinimo ?? 5,
+      });
+      setLibros((prev) => [...prev, created]);
     }
+
     setShowForm(false);
     setEditingLibro(undefined);
   };
@@ -75,23 +94,19 @@ export function LibrosPage() {
     {
       key: 'precio',
       label: 'Precio',
-      render: (value?: number) =>
-        value ? `$${value.toLocaleString('es-CL')}` : '-',
+      render: (value?: number) => (value ? `$${value.toLocaleString('es-CL')}` : '-'),
     },
     {
       key: 'activo',
       label: 'Estado',
       render: (value: boolean) => (
-        <Badge variant={value ? 'success' : 'default'}>
-          {value ? 'Activo' : 'Inactivo'}
-        </Badge>
+        <Badge variant={value ? 'success' : 'default'}>{value ? 'Activo' : 'Inactivo'}</Badge>
       ),
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="mb-2">Libros</h3>
@@ -111,7 +126,6 @@ export function LibrosPage() {
         )}
       </div>
 
-      {/* Form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-neutral-200 p-4 lg:p-6">
           <h5 className="mb-6">{editingLibro ? 'Editar libro' : 'Nuevo libro'}</h5>
@@ -119,7 +133,6 @@ export function LibrosPage() {
         </div>
       )}
 
-      {/* Table */}
       {!showForm && (
         <TablaInventario
           columns={columns}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Warehouse,
@@ -13,6 +13,7 @@ import {
   X,
   ChevronLeft,
 } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -24,6 +25,7 @@ interface AppShellProps {
     rol: string;
   };
   onLogout?: () => void;
+  onSearch?: (query: string) => void;
 }
 
 const menuItems = [
@@ -36,14 +38,38 @@ const menuItems = [
   { id: 'configuracion', label: 'Configuración', icon: Settings },
 ];
 
-export function AppShell({ children, currentPage, onNavigate, currentUser, onLogout }: AppShellProps) {
+export function AppShell({
+  children,
+  currentPage,
+  onNavigate,
+  currentUser,
+  onLogout,
+  onSearch,
+}: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const filteredMenuItems = menuItems.filter(
-    (item) => !item.adminOnly || currentUser?.rol === 'admin'
+    (item) => !item.adminOnly || currentUser?.rol === 'admin',
   );
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    onSearch?.(debouncedSearchQuery);
+  }, [debouncedSearchQuery, onSearch]);
 
   const SidebarContent = () => (
     <div className="h-full flex flex-col bg-white border-r border-neutral-200">
@@ -59,6 +85,7 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="hidden lg:flex p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+          aria-label="Colapsar menú lateral"
         >
           <ChevronLeft className={`w-5 h-5 transition-transform ${!sidebarOpen ? 'rotate-180' : ''}`} />
         </button>
@@ -66,6 +93,7 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
         <button
           onClick={() => setMobileMenuOpen(false)}
           className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+          aria-label="Cerrar menú móvil"
         >
           <X className="w-5 h-5" />
         </button>
@@ -147,17 +175,25 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
           <button
             onClick={() => setMobileMenuOpen(true)}
             className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+            aria-label="Abrir menú móvil"
           >
             <Menu className="w-6 h-6" />
           </button>
 
           {/* Search */}
           <div className="flex-1 max-w-md hidden md:block">
+            <label htmlFor="global-search" className="sr-only">
+              Buscar en el sistema
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
               <input
+                id="global-search"
                 type="text"
                 placeholder="Buscar libros, bodegas..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                aria-label="Buscar en el sistema"
                 className="w-full pl-10 pr-4 py-2 min-h-[44px] bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
@@ -168,6 +204,7 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2 p-2 hover:bg-neutral-100 rounded-lg transition-colors min-h-[44px]"
+              aria-label="Abrir menú de usuario"
             >
               <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center">
                 {currentUser?.nombre?.charAt(0) || 'U'}
@@ -181,10 +218,7 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
             {/* User dropdown */}
             {userMenuOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setUserMenuOpen(false)}
-                />
+                <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-neutral-200 py-2 z-20">
                   <div className="px-4 py-2 border-b border-neutral-200">
                     <p className="caption">{currentUser?.nombre}</p>
@@ -219,9 +253,7 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );

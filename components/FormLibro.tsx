@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { Select } from './Select';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Select } from './ui/select';
 import { Libro } from '../types';
 import { generos } from '../lib/mockData';
 
 interface FormLibroProps {
   libro?: Libro;
-  onSave: (libro: Partial<Libro>) => void;
+  onSave: (libro: Partial<Libro>) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -27,8 +27,9 @@ export function FormLibro({ libro, onSave, onCancel }: FormLibroProps) {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -42,7 +43,12 @@ export function FormLibro({ libro, onSave, onCancel }: FormLibroProps) {
       return;
     }
 
-    onSave(formData);
+    try {
+      setSubmitError(null);
+      await onSave(formData);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Error inesperado al guardar');
+    }
   };
 
   return (
@@ -143,6 +149,9 @@ export function FormLibro({ libro, onSave, onCancel }: FormLibroProps) {
         </label>
       </div>
 
+      {submitError && (
+        <p className="text-danger-600 text-sm">{submitError}</p>
+      )}
       <div className="flex gap-3 pt-4 border-t border-neutral-200">
         <Button type="submit" variant="primary">
           Guardar
