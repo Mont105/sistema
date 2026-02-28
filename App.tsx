@@ -17,7 +17,26 @@ import { ReportesPage } from '@/pages/ReportesPage';
 import { UsuariosPage } from '@/pages/UsuariosPage';
 import { ConfiguracionPage } from '@/pages/ConfiguracionPage';
 
-const routeByPage: Record<string, string> = {
+type AppPages =
+  | 'dashboard'
+  | 'bodegas'
+  | 'libros'
+  | 'movimientos'
+  | 'reportes'
+  | 'usuarios'
+  | 'configuracion';
+
+type AppRoutes =
+  | '/'
+  | '/bodegas'
+  | '/inventario'
+  | '/libros'
+  | '/movimientos'
+  | '/reportes'
+  | '/usuarios'
+  | '/configuracion';
+
+const routeByPage: Record<AppPages, AppRoutes> = {
   dashboard: '/',
   bodegas: '/bodegas',
   libros: '/inventario',
@@ -27,7 +46,7 @@ const routeByPage: Record<string, string> = {
   configuracion: '/configuracion',
 };
 
-const pageByRoute: Record<string, string> = {
+const pageByRoute: Record<AppRoutes, AppPages> = {
   '/': 'dashboard',
   '/bodegas': 'bodegas',
   '/inventario': 'libros',
@@ -38,17 +57,26 @@ const pageByRoute: Record<string, string> = {
   '/configuracion': 'configuracion',
 };
 
+function isAppPage(page: string): page is AppPages {
+  return page in routeByPage;
+}
+
+function isAppRoute(route: string): route is AppRoutes {
+  return route in pageByRoute;
+}
+
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  const currentPage = pageByRoute[location.pathname] ?? 'dashboard';
+  const currentRoute: AppRoutes = isAppRoute(location.pathname) ? location.pathname : '/';
+  const currentPage = pageByRoute[currentRoute];
 
   return (
     <AppShell
       currentPage={currentPage}
-      onNavigate={(page) => navigate(routeByPage[page] ?? '/')}
+      onNavigate={(page) => navigate(isAppPage(page) ? routeByPage[page] : '/')}
       currentUser={currentUser ?? undefined}
     >
       <Routes>

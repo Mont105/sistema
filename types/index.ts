@@ -1,5 +1,7 @@
 // Types for Inventory System
 
+export type Money = number;
+
 export interface Bodega {
   id: string;
   codigo: string;
@@ -18,8 +20,10 @@ export interface Libro {
   anio: number;
   genero: string;
   unidad: string;
-  costo: number;
-  precio?: number;
+  /** @description Almacenar en centavos/enteros para evitar errores de coma flotante */
+  costo: Money;
+  /** @description Almacenar en centavos/enteros para evitar errores de coma flotante */
+  precio?: Money;
   imagen?: string;
   activo: boolean;
   stockMinimo?: number;
@@ -38,7 +42,8 @@ export interface Movimiento {
   bodegaDestinoId?: string;
   bodegaDestinoNombre?: string;
   cantidad: number;
-  costoUnitario?: number;
+  /** @description Almacenar en centavos/enteros para evitar errores de coma flotante */
+  costoUnitario?: Money;
   motivo: string;
   docReferencia?: string;
   usuarioId: string;

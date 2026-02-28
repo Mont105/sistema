@@ -4,6 +4,7 @@ import { KPICard } from '@/components/KPICard';
 import { Badge } from '@/components/ui/badge';
 import { movimientos, libros, bodegas, calcularStockPorBodega } from '@/lib/mockData';
 import type { Movimiento } from '@/types';
+import { formatDateTimeEsCL } from '@/utils/dateFormatter';
 
 function assertNever(value: never): never {
   throw new Error(`Unhandled movimiento tipo: ${value}`);
@@ -32,7 +33,11 @@ export function DashboardPage() {
     () =>
       [...movimientos]
         .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-        .slice(0, 10),
+        .slice(0, 10)
+        .map((mov) => ({
+          ...mov,
+          fechaFormateada: formatDateTimeEsCL(mov.fecha),
+        })),
     [],
   );
 
@@ -106,15 +111,7 @@ export function DashboardPage() {
             <tbody>
               {ultimosMovimientos.map((mov) => (
                 <tr key={mov.id} className="border-b border-neutral-200 hover:bg-neutral-50">
-                  <td className="px-4 py-3 caption">
-                    {new Date(mov.fecha).toLocaleDateString('es-CL', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </td>
+                  <td className="px-4 py-3 caption">{mov.fechaFormateada}</td>
                   <td className="px-4 py-3">
                     <Badge variant={getMovimientoColor(mov.tipo)}>
                       {mov.tipo.charAt(0).toUpperCase() + mov.tipo.slice(1)}
