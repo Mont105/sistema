@@ -19,6 +19,7 @@ export function BodegasPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingBodega, setEditingBodega] = useState<Bodega | undefined>();
   const [pageError, setPageError] = useState<string | null>(null);
+  const [isMockMode, setIsMockMode] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -29,11 +30,13 @@ export function BodegasPage() {
         if (isMounted) {
           setBodegas(data);
           setPageError(null);
+          setIsMockMode(false);
         }
       } catch {
         if (isMounted) {
           setBodegas(initialBodegas);
           setPageError('No se pudo conectar al servidor. Mostrando datos mock.');
+          setIsMockMode(true);
         }
       }
     };
@@ -46,6 +49,39 @@ export function BodegasPage() {
   }, []);
 
   const handleSave = async (bodega: Partial<Bodega>): Promise<SaveResult> => {
+    if (isMockMode) {
+      if (editingBodega) {
+        setBodegas((prev) =>
+          prev.map((item) =>
+            item.id === editingBodega.id
+              ? {
+                  ...item,
+                  codigo: bodega.codigo ?? item.codigo,
+                  nombre: bodega.nombre ?? item.nombre,
+                  direccion: bodega.direccion ?? item.direccion,
+                  activo: bodega.activo ?? item.activo,
+                }
+              : item,
+          ),
+        );
+      } else {
+        const created: Bodega = {
+          id: Date.now().toString(),
+          codigo: bodega.codigo ?? '',
+          nombre: bodega.nombre ?? '',
+          direccion: bodega.direccion ?? '',
+          activo: bodega.activo ?? true,
+          createdAt: new Date().toISOString(),
+        };
+        setBodegas((prev) => [...prev, created]);
+      }
+
+      setShowForm(false);
+      setEditingBodega(undefined);
+      setPageError(null);
+      return { ok: true };
+    }
+
     try {
       if (editingBodega) {
         const updated = await updateBodega(editingBodega.id, {
@@ -55,9 +91,7 @@ export function BodegasPage() {
           activo: bodega.activo,
         });
 
-        setBodegas((prev) =>
-          prev.map((item) => (item.id === updated.id ? updated : item)),
-        );
+        setBodegas((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       } else {
         const created = await createBodega({
           codigo: bodega.codigo ?? '',
@@ -86,6 +120,12 @@ export function BodegasPage() {
 
   const handleDelete = async (bodega: Bodega) => {
     if (!confirm(`¿Estás seguro de eliminar la bodega "${bodega.nombre}"?`)) {
+      return;
+    }
+
+    if (isMockMode) {
+      setBodegas((prev) => prev.filter((item) => item.id !== bodega.id));
+      setPageError(null);
       return;
     }
 
@@ -122,6 +162,7 @@ export function BodegasPage() {
         <div>
           <h3 className="mb-2">Bodegas</h3>
           <p className="text-neutral-600">Gestión de bodegas y almacenes</p>
+          {isMockMode && <p className="text-warning-700 text-sm">Modo offline (datos locales)</p>}
         </div>
         {!showForm && (
           <Button variant="primary" onClick={() => setShowForm(true)}>

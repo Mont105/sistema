@@ -5,9 +5,13 @@ import { Select } from './ui/select';
 import { Libro } from '../types';
 import { generos } from '../lib/mockData';
 
+export type LibroSaveResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
 interface FormLibroProps {
   libro?: Libro;
-  onSave: (libro: Partial<Libro>) => Promise<void>;
+  onSave: (libro: Partial<Libro>) => Promise<LibroSaveResult>;
   onCancel: () => void;
 }
 
@@ -44,10 +48,16 @@ export function FormLibro({ libro, onSave, onCancel }: FormLibroProps) {
     }
 
     try {
+      const result = await onSave(formData);
+
+      if (!result.ok) {
+        setSubmitError(result.message);
+        return;
+      }
+
       setSubmitError(null);
-      await onSave(formData);
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Error inesperado al guardar');
+    } catch {
+      setSubmitError('No se pudo guardar. Intenta nuevamente.');
     }
   };
 
@@ -149,9 +159,7 @@ export function FormLibro({ libro, onSave, onCancel }: FormLibroProps) {
         </label>
       </div>
 
-      {submitError && (
-        <p className="text-danger-600 text-sm">{submitError}</p>
-      )}
+      {submitError && <p className="text-danger-600 text-sm">{submitError}</p>}
       <div className="flex gap-3 pt-4 border-t border-neutral-200">
         <Button type="submit" variant="primary">
           Guardar

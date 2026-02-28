@@ -37,14 +37,18 @@ export function FormBodega({ bodega, onSave, onCancel }: FormBodegaProps) {
       return;
     }
 
-    const result = await onSave(formData);
+    try {
+      const result = await onSave(formData);
 
-    if (!result.ok) {
-      setSubmitError(result.message);
-      return;
+      if (!result.ok) {
+        setSubmitError(result.message);
+        return;
+      }
+
+      setSubmitError(null);
+    } catch {
+      setSubmitError('No se pudo guardar. Intenta nuevamente.');
     }
-
-    setSubmitError(null);
   };
 
   return (

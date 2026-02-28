@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TablaInventario } from '@/components/TablaInventario';
-import { FormLibro } from '@/components/FormLibro';
+import { FormLibro, LibroSaveResult } from '@/components/FormLibro';
 import { Badge } from '@/components/ui/badge';
 import {
   createLibro,
@@ -19,6 +19,7 @@ export function LibrosPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingLibro, setEditingLibro] = useState<Libro | undefined>();
   const [pageError, setPageError] = useState<string | null>(null);
+  const [isMockMode, setIsMockMode] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -29,11 +30,13 @@ export function LibrosPage() {
         if (isMounted) {
           setLibros(data);
           setPageError(null);
+          setIsMockMode(false);
         }
       } catch {
         if (isMounted) {
           setLibros(initialLibros);
           setPageError('No se pudo conectar al servidor. Mostrando datos mock.');
+          setIsMockMode(true);
         }
       }
     };
@@ -45,7 +48,54 @@ export function LibrosPage() {
     };
   }, []);
 
-  const handleSave = async (libro: Partial<Libro>) => {
+  const handleSave = async (libro: Partial<Libro>): Promise<LibroSaveResult> => {
+    if (isMockMode) {
+      if (editingLibro) {
+        setLibros((prev) =>
+          prev.map((item) =>
+            item.id === editingLibro.id
+              ? {
+                  ...item,
+                  isbn: libro.isbn ?? item.isbn,
+                  titulo: libro.titulo ?? item.titulo,
+                  autor: libro.autor ?? item.autor,
+                  editorial: libro.editorial ?? item.editorial,
+                  anio: libro.anio ?? item.anio,
+                  genero: libro.genero ?? item.genero,
+                  unidad: libro.unidad ?? item.unidad,
+                  costo: libro.costo ?? item.costo,
+                  precio: libro.precio ?? item.precio,
+                  activo: libro.activo ?? item.activo,
+                  stockMinimo: libro.stockMinimo ?? item.stockMinimo,
+                }
+              : item,
+          ),
+        );
+      } else {
+        const created: Libro = {
+          id: Date.now().toString(),
+          isbn: libro.isbn ?? '',
+          titulo: libro.titulo ?? '',
+          autor: libro.autor ?? '',
+          editorial: libro.editorial ?? '',
+          anio: libro.anio ?? new Date().getFullYear(),
+          genero: libro.genero ?? '',
+          unidad: libro.unidad ?? 'Ejemplar',
+          costo: libro.costo ?? 0,
+          precio: libro.precio,
+          activo: libro.activo ?? true,
+          stockMinimo: libro.stockMinimo ?? 5,
+          createdAt: new Date().toISOString(),
+        };
+        setLibros((prev) => [...prev, created]);
+      }
+
+      setShowForm(false);
+      setEditingLibro(undefined);
+      setPageError(null);
+      return { ok: true };
+    }
+
     try {
       if (editingLibro) {
         const updated = await updateLibro(editingLibro.id, {
@@ -62,9 +112,7 @@ export function LibrosPage() {
           stockMinimo: libro.stockMinimo,
         });
 
-        setLibros((prev) =>
-          prev.map((item) => (item.id === updated.id ? updated : item)),
-        );
+        setLibros((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
       } else {
         const created = await createLibro({
           isbn: libro.isbn ?? '',
@@ -85,9 +133,11 @@ export function LibrosPage() {
       setShowForm(false);
       setEditingLibro(undefined);
       setPageError(null);
+      return { ok: true };
     } catch (error) {
-      setPageError(getErrorMessage(error));
-      throw error;
+      const message = getErrorMessage(error);
+      setPageError(message);
+      return { ok: false, message };
     }
   };
 
@@ -98,6 +148,12 @@ export function LibrosPage() {
 
   const handleDelete = async (libro: Libro) => {
     if (!confirm(`¿Estás seguro de eliminar el libro "${libro.titulo}"?`)) {
+      return;
+    }
+
+    if (isMockMode) {
+      setLibros((prev) => prev.filter((item) => item.id !== libro.id));
+      setPageError(null);
       return;
     }
 
@@ -154,6 +210,7 @@ export function LibrosPage() {
         <div>
           <h3 className="mb-2">Libros</h3>
           <p className="text-neutral-600">Catálogo de libros del inventario</p>
+          {isMockMode && <p className="text-warning-700 text-sm">Modo offline (datos locales)</p>}
         </div>
         {!showForm && (
           <div className="flex gap-3">
