@@ -1,26 +1,44 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { BookOpen, Warehouse, AlertTriangle, Package } from 'lucide-react';
-import { KPICard } from '../components/KPICard';
-import { Badge } from '../components/Badge';
-import { movimientos, libros, bodegas, calcularStockPorBodega } from '../lib/mockData';
+import { KPICard } from '@/components/KPICard';
+import { Badge } from '@/components/ui/badge';
+import { movimientos, libros, bodegas, calcularStockPorBodega } from '@/lib/mockData';
+import type { Movimiento } from '@/types';
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled movimiento tipo: ${value}`);
+}
 
 export function DashboardPage() {
-  const stockPorBodega = calcularStockPorBodega();
-  const stockTotal = stockPorBodega.reduce((sum, item) => sum + item.cantidad, 0);
-  
-  // Calculate low stock alerts
-  const alertasBajoStock = libros.filter((libro) => {
-    const stockLibro = stockPorBodega
-      .filter((s) => s.libroId === libro.id)
-      .reduce((sum, s) => sum + s.cantidad, 0);
-    return stockLibro < (libro.stockMinimo || 5);
-  }).length;
+  const stockPorBodega = useMemo(() => calcularStockPorBodega(), []);
 
-  const ultimosMovimientos = [...movimientos]
-    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-    .slice(0, 10);
+  const stockTotal = useMemo(
+    () => stockPorBodega.reduce((sum, item) => sum + item.cantidad, 0),
+    [stockPorBodega],
+  );
 
-  const getMovimientoColor = (tipo: string) => {
+  const alertasBajoStock = useMemo(
+    () =>
+      libros.filter((libro) => {
+        const stockLibro = stockPorBodega
+          .filter((s) => s.libroId === libro.id)
+          .reduce((sum, s) => sum + s.cantidad, 0);
+        return stockLibro < (libro.stockMinimo || 5);
+      }).length,
+    [stockPorBodega],
+  );
+
+  const ultimosMovimientos = useMemo(
+    () =>
+      [...movimientos]
+        .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+        .slice(0, 10),
+    [],
+  );
+
+  const getMovimientoColor = (
+    tipo: Movimiento['tipo'],
+  ): 'default' | 'success' | 'warning' | 'danger' | 'primary' => {
     switch (tipo) {
       case 'entrada':
         return 'success';
@@ -28,9 +46,9 @@ export function DashboardPage() {
         return 'danger';
       case 'transferencia':
         return 'primary';
-      default:
-        return 'default';
     }
+
+    return assertNever(tipo);
   };
 
   return (
@@ -40,7 +58,6 @@ export function DashboardPage() {
         <p className="text-neutral-600">Vista general del sistema de inventario</p>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
           title="Stock Total"
@@ -68,7 +85,6 @@ export function DashboardPage() {
         />
       </div>
 
-      {/* Recent movements */}
       <div className="bg-white rounded-xl border border-neutral-200">
         <div className="p-4 lg:p-6 border-b border-neutral-200">
           <h5>Últimos 10 movimientos</h5>
@@ -100,7 +116,7 @@ export function DashboardPage() {
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={getMovimientoColor(mov.tipo) as any} size="sm">
+                    <Badge variant={getMovimientoColor(mov.tipo)}>
                       {mov.tipo.charAt(0).toUpperCase() + mov.tipo.slice(1)}
                     </Badge>
                   </td>
@@ -131,7 +147,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Chart placeholder */}
       <div className="bg-white rounded-xl border border-neutral-200 p-6">
         <h5 className="mb-4">Movimientos por semana</h5>
         <div className="h-64 bg-neutral-50 rounded-lg flex items-center justify-center">

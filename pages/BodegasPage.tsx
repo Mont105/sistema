@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '../components/Button';
-import { TablaInventario } from '../components/TablaInventario';
-import { FormBodega } from '../components/FormBodega';
-import { Badge } from '../components/Badge';
+import { Button } from '@/components/ui/button';
+import { TablaInventario } from '@/components/TablaInventario';
+import { FormBodega } from '@/components/FormBodega';
+import { Badge } from '@/components/ui/badge';
 import { bodegas as initialBodegas } from '../lib/mockData';
 import { Bodega } from '../types';
 

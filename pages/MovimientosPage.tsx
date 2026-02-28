@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FormMovimiento } from '../components/FormMovimiento';
-import { ScannerDialog } from '../components/ScannerDialog';
+import { FormMovimiento } from '@/components/FormMovimiento';
+import { ScannerDialog } from '@/components/ScannerDialog';
 import { Movimiento } from '../types';
 import { movimientos as initialMovimientos, libros, bodegas, usuarios } from '../lib/mockData';
 
