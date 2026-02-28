@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
-import { AppShell } from './components/AppShell';
-import { DashboardPage } from './pages/DashboardPage';
-import { BodegasPage } from './pages/BodegasPage';
-import { LibrosPage } from './pages/LibrosPage';
-import { MovimientosPage } from './pages/MovimientosPage';
-import { ReportesPage } from './pages/ReportesPage';
-import { UsuariosPage } from './pages/UsuariosPage';
-import { ConfiguracionPage } from './pages/ConfiguracionPage';
-import { usuarios } from './lib/mockData';
+import React from 'react';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
+import { AppShell } from '@/components/AppShell';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { BodegasPage } from '@/pages/BodegasPage';
+import { LibrosPage } from '@/pages/LibrosPage';
+import { MovimientosPage } from '@/pages/MovimientosPage';
+import { ReportesPage } from '@/pages/ReportesPage';
+import { UsuariosPage } from '@/pages/UsuariosPage';
+import { ConfiguracionPage } from '@/pages/ConfiguracionPage';
 
-type Page =
+type AppPages =
   | 'dashboard'
   | 'bodegas'
   | 'libros'
@@ -18,27 +26,80 @@ type Page =
   | 'usuarios'
   | 'configuracion';
 
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const [currentUser] = useState(usuarios[0]); // Default user
+type AppRoutes =
+  | '/'
+  | '/bodegas'
+  | '/inventario'
+  | '/libros'
+  | '/movimientos'
+  | '/reportes'
+  | '/usuarios'
+  | '/configuracion';
 
-  const handleNavigate = (page: string) => {
-    setCurrentPage(page as Page);
-  };
+const routeByPage: Record<AppPages, AppRoutes> = {
+  dashboard: '/',
+  bodegas: '/bodegas',
+  libros: '/inventario',
+  movimientos: '/movimientos',
+  reportes: '/reportes',
+  usuarios: '/usuarios',
+  configuracion: '/configuracion',
+};
+
+const pageByRoute: Record<AppRoutes, AppPages> = {
+  '/': 'dashboard',
+  '/bodegas': 'bodegas',
+  '/inventario': 'libros',
+  '/libros': 'libros',
+  '/movimientos': 'movimientos',
+  '/reportes': 'reportes',
+  '/usuarios': 'usuarios',
+  '/configuracion': 'configuracion',
+};
+
+function isAppPage(page: string): page is AppPages {
+  return page in routeByPage;
+}
+
+function isAppRoute(route: string): route is AppRoutes {
+  return route in pageByRoute;
+}
+
+function AppLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  const currentRoute: AppRoutes = isAppRoute(location.pathname) ? location.pathname : '/';
+  const currentPage = pageByRoute[currentRoute];
 
   return (
     <AppShell
       currentPage={currentPage}
-      onNavigate={handleNavigate}
-      currentUser={currentUser}
+      onNavigate={(page) => navigate(isAppPage(page) ? routeByPage[page] : '/')}
+      currentUser={currentUser ?? undefined}
     >
-      {currentPage === 'dashboard' && <DashboardPage />}
-      {currentPage === 'bodegas' && <BodegasPage />}
-      {currentPage === 'libros' && <LibrosPage />}
-      {currentPage === 'movimientos' && <MovimientosPage />}
-      {currentPage === 'reportes' && <ReportesPage />}
-      {currentPage === 'usuarios' && <UsuariosPage />}
-      {currentPage === 'configuracion' && <ConfiguracionPage />}
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/usuarios" element={<UsuariosPage />} />
+        <Route path="/inventario" element={<LibrosPage />} />
+        <Route path="/libros" element={<LibrosPage />} />
+        <Route path="/bodegas" element={<BodegasPage />} />
+        <Route path="/movimientos" element={<MovimientosPage />} />
+        <Route path="/reportes" element={<ReportesPage />} />
+        <Route path="/configuracion" element={<ConfiguracionPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </AppShell>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

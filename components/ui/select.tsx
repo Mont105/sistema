@@ -1,18 +1,52 @@
-"use client";
-
 import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select@2.1.6";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from "lucide-react@0.487.0";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
-function Select({
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+type LegacyOption = { value: string; label: string };
+
+type LegacySelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+  label?: string;
+  error?: string;
+  options: LegacyOption[];
+};
+
+function isLegacySelectProps(
+  props: React.ComponentProps<typeof SelectPrimitive.Root> | LegacySelectProps,
+): props is LegacySelectProps {
+  return "options" in props;
+}
+
+function Select(
+  props: React.ComponentProps<typeof SelectPrimitive.Root> | LegacySelectProps,
+) {
+  if (isLegacySelectProps(props)) {
+    const { className, label, error, options, ...nativeProps } = props;
+
+    return (
+      <div className="w-full space-y-2">
+        {label && <label className="block text-sm text-neutral-700">{label}</label>}
+        <select
+          className={cn(
+            "w-full h-9 rounded-md border border-input bg-input-background px-3 text-sm outline-none",
+            "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+            error && "border-danger-500",
+            className,
+          )}
+          {...nativeProps}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {error && <p className="text-danger-600 text-sm">{error}</p>}
+      </div>
+    );
+  }
+
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
 
