@@ -11,7 +11,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@app/shared": ["./packages/shared/src/index.ts"]
     }
   },
   "include": ["vite.config.ts"]

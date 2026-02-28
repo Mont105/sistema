@@ -14,8 +14,21 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@app/shared": ["./packages/shared/src/index.ts"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": [
+    "App.tsx",
+    "main.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "context/**/*.ts",
+    "context/**/*.tsx",
+    "hooks/**/*.ts",
+    "lib/**/*.ts",
+    "pages/**/*.tsx",
+    "types/**/*.ts",
+    "utils/**/*.ts"
+  ]
 }

@@ -5,7 +5,7 @@ import { Bodega } from '../types';
 
 interface FormBodegaProps {
   bodega?: Bodega;
-  onSave: (bodega: Partial<Bodega>) => void;
+  onSave: (bodega: Partial<Bodega>) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -18,8 +18,9 @@ export function FormBodega({ bodega, onSave, onCancel }: FormBodegaProps) {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -32,7 +33,12 @@ export function FormBodega({ bodega, onSave, onCancel }: FormBodegaProps) {
       return;
     }
 
-    onSave(formData);
+    try {
+      setSubmitError(null);
+      await onSave(formData);
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Error inesperado al guardar');
+    }
   };
 
   return (
@@ -77,6 +83,9 @@ export function FormBodega({ bodega, onSave, onCancel }: FormBodegaProps) {
         </label>
       </div>
 
+      {submitError && (
+        <p className="text-danger-600 text-sm">{submitError}</p>
+      )}
       <div className="flex gap-3 pt-4 border-t border-neutral-200">
         <Button type="submit" variant="primary">
           Guardar
