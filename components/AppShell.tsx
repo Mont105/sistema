@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Warehouse,
@@ -44,6 +44,17 @@ export function AppShell({ children, currentPage, onNavigate, currentUser, onLog
   const filteredMenuItems = menuItems.filter(
     (item) => !item.adminOnly || currentUser?.rol === 'admin'
   );
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mobileMenuOpen]);
 
   const SidebarContent = () => (
     <div className="h-full flex flex-col bg-white border-r border-neutral-200">

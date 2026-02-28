@@ -1,6 +1,14 @@
 import React from 'react';
-import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { AppShell } from '@/components/AppShell';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { BodegasPage } from '@/pages/BodegasPage';
 import { LibrosPage } from '@/pages/LibrosPage';
@@ -8,7 +16,6 @@ import { MovimientosPage } from '@/pages/MovimientosPage';
 import { ReportesPage } from '@/pages/ReportesPage';
 import { UsuariosPage } from '@/pages/UsuariosPage';
 import { ConfiguracionPage } from '@/pages/ConfiguracionPage';
-import { usuarios } from '@/lib/mockData';
 
 const routeByPage: Record<string, string> = {
   dashboard: '/',
@@ -34,7 +41,7 @@ const pageByRoute: Record<string, string> = {
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentUser = usuarios[0];
+  const { currentUser } = useAuth();
 
   const currentPage = pageByRoute[location.pathname] ?? 'dashboard';
 
@@ -42,7 +49,7 @@ function AppLayout() {
     <AppShell
       currentPage={currentPage}
       onNavigate={(page) => navigate(routeByPage[page] ?? '/')}
-      currentUser={currentUser}
+      currentUser={currentUser ?? undefined}
     >
       <Routes>
         <Route path="/" element={<DashboardPage />} />
@@ -53,7 +60,7 @@ function AppLayout() {
         <Route path="/movimientos" element={<MovimientosPage />} />
         <Route path="/reportes" element={<ReportesPage />} />
         <Route path="/configuracion" element={<ConfiguracionPage />} />
-        <Route path="*" element={<DashboardPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppShell>
   );
@@ -61,8 +68,10 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AppLayout />
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
