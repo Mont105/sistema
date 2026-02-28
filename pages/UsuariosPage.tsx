@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Select } from '../components/ui/select';
-import { TablaInventario } from '../components/TablaInventario';
-import { Badge } from '../components/ui/badge';
-import { usuarios as initialUsuarios } from '../lib/mockData';
-import { Usuario } from '../types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { TablaInventario } from '@/components/TablaInventario';
+import { Badge } from '@/components/ui/badge';
+import { usuarios as initialUsuarios } from '@/lib/mockData';
+import { Usuario } from '@/types';
 
 export function UsuariosPage() {
   const [usuarios, setUsuarios] = useState(initialUsuarios);
@@ -64,9 +71,7 @@ export function UsuariosPage() {
       key: 'activo',
       label: 'Estado',
       render: (value: boolean) => (
-        <Badge variant={value ? 'success' : 'default'}>
-          {value ? 'Activo' : 'Inactivo'}
-        </Badge>
+        <Badge variant={value ? 'success' : 'default'}>{value ? 'Activo' : 'Inactivo'}</Badge>
       ),
     },
     {
@@ -83,7 +88,6 @@ export function UsuariosPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h3 className="mb-2">Usuarios</h3>
@@ -97,51 +101,66 @@ export function UsuariosPage() {
         )}
       </div>
 
-      {/* Form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-neutral-200 p-4 lg:p-6">
           <h5 className="mb-6">Nuevo usuario</h5>
           <form onSubmit={handleSave} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Nombre completo *"
-                value={formData.nombre}
-                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                placeholder="Juan Pérez"
-                required
-              />
-              <Input
-                label="Email *"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="juan@inventario.cl"
-                required
-              />
+              <div className="space-y-2">
+                <Label htmlFor="usuario-nombre">Nombre completo *</Label>
+                <Input
+                  id="usuario-nombre"
+                  value={formData.nombre}
+                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                  placeholder="Juan Pérez"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="usuario-email">Email *</Label>
+                <Input
+                  id="usuario-email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="juan@inventario.cl"
+                  required
+                />
+              </div>
             </div>
 
-            <Select
-              label="Rol *"
-              value={formData.rol}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  rol: e.target.value as 'admin' | 'operador' | 'consulta',
-                })
-              }
-              options={[
-                { value: 'admin', label: 'Administrador' },
-                { value: 'operador', label: 'Operador' },
-                { value: 'consulta', label: 'Consulta' },
-              ]}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="usuario-rol">Rol *</Label>
+              <Select
+                value={formData.rol}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, rol: value as 'admin' | 'operador' | 'consulta' })
+                }
+              >
+                <SelectTrigger id="usuario-rol">
+                  <SelectValue placeholder="Seleccionar rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="operador">Operador</SelectItem>
+                  <SelectItem value="consulta">Consulta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="p-4 bg-neutral-50 rounded-lg border border-neutral-200">
               <p className="caption text-neutral-600 mb-2">Permisos por rol:</p>
               <ul className="space-y-1 caption text-neutral-600">
-                <li>• <strong>Admin:</strong> Acceso total al sistema</li>
-                <li>• <strong>Operador:</strong> Gestión de inventario y movimientos</li>
-                <li>• <strong>Consulta:</strong> Solo lectura</li>
+                <li>
+                  • <strong>Admin:</strong> Acceso total al sistema
+                </li>
+                <li>
+                  • <strong>Operador:</strong> Gestión de inventario y movimientos
+                </li>
+                <li>
+                  • <strong>Consulta:</strong> Solo lectura
+                </li>
               </ul>
             </div>
 
@@ -157,7 +176,6 @@ export function UsuariosPage() {
         </div>
       )}
 
-      {/* Table */}
       {!showForm && (
         <TablaInventario
           columns={columns}

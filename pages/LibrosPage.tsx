@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { TablaInventario } from '../components/TablaInventario';
-import { FormLibro } from '../components/FormLibro';
-import { Badge } from '../components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { TablaInventario } from '@/components/TablaInventario';
+import { FormLibro } from '@/components/FormLibro';
+import { Badge } from '@/components/ui/badge';
 import { libros as initialLibros, generos } from '../lib/mockData';
 import { Libro } from '../types';
 

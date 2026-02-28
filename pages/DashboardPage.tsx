@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookOpen, Warehouse, AlertTriangle, Package } from 'lucide-react';
-import { KPICard } from '../components/KPICard';
-import { Badge } from '../components/ui/badge';
+import { KPICard } from '@/components/KPICard';
+import { Badge } from '@/components/ui/badge';
 import { movimientos, libros, bodegas, calcularStockPorBodega } from '../lib/mockData';
 
 export function DashboardPage() {

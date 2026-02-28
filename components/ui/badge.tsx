@@ -9,17 +9,16 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-neutral-100 text-neutral-700",
-        primary: "border-transparent bg-primary-50 text-primary-700",
-        success: "border-transparent bg-success-50 text-success-700",
-        warning: "border-transparent bg-warning-50 text-warning-700",
-        danger: "border-transparent bg-danger-50 text-danger-700",
+        default: "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90",
-        outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        success: "border-transparent bg-success-600 text-white hover:bg-success-700",
+        warning: "border-transparent bg-warning-500 text-white hover:bg-warning-600",
+        danger: "border-transparent bg-danger-600 text-white hover:bg-danger-700",
+        primary: "border-transparent bg-primary-600 text-white hover:bg-primary-700",
       },
     },
     defaultVariants: {
@@ -28,13 +27,13 @@ const badgeVariants = cva(
   },
 );
 
-function Badge({
-  className,
-  variant,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+export interface BadgeProps
+  extends React.ComponentProps<"span">,
+    VariantProps<typeof badgeVariants> {
+  asChild?: boolean;
+}
+
+function Badge({ className, variant, asChild = false, ...props }: BadgeProps) {
   const Comp = asChild ? Slot : "span";
 
   return (
