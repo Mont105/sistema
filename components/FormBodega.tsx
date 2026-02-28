@@ -3,9 +3,13 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Bodega } from '../types';
 
+export type SaveResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
 interface FormBodegaProps {
   bodega?: Bodega;
-  onSave: (bodega: Partial<Bodega>) => Promise<void>;
+  onSave: (bodega: Partial<Bodega>) => Promise<SaveResult>;
   onCancel: () => void;
 }
 
@@ -33,12 +37,14 @@ export function FormBodega({ bodega, onSave, onCancel }: FormBodegaProps) {
       return;
     }
 
-    try {
-      setSubmitError(null);
-      await onSave(formData);
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Error inesperado al guardar');
+    const result = await onSave(formData);
+
+    if (!result.ok) {
+      setSubmitError(result.message);
+      return;
     }
+
+    setSubmitError(null);
   };
 
   return (
@@ -83,9 +89,7 @@ export function FormBodega({ bodega, onSave, onCancel }: FormBodegaProps) {
         </label>
       </div>
 
-      {submitError && (
-        <p className="text-danger-600 text-sm">{submitError}</p>
-      )}
+      {submitError && <p className="text-danger-600 text-sm">{submitError}</p>}
       <div className="flex gap-3 pt-4 border-t border-neutral-200">
         <Button type="submit" variant="primary">
           Guardar

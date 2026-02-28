@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TablaInventario } from '@/components/TablaInventario';
-import { FormBodega } from '@/components/FormBodega';
+import { FormBodega, SaveResult } from '@/components/FormBodega';
 import { Badge } from '@/components/ui/badge';
 import {
   createBodega,
@@ -45,7 +45,7 @@ export function BodegasPage() {
     };
   }, []);
 
-  const handleSave = async (bodega: Partial<Bodega>) => {
+  const handleSave = async (bodega: Partial<Bodega>): Promise<SaveResult> => {
     try {
       if (editingBodega) {
         const updated = await updateBodega(editingBodega.id, {
@@ -71,9 +71,11 @@ export function BodegasPage() {
       setShowForm(false);
       setEditingBodega(undefined);
       setPageError(null);
+      return { ok: true };
     } catch (error) {
-      setPageError(getErrorMessage(error));
-      throw error;
+      const message = getErrorMessage(error);
+      setPageError(message);
+      return { ok: false, message };
     }
   };
 
