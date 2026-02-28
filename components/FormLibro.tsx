@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { Select } from './Select';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Select } from './ui/select';
 import { Libro } from '../types';
 import { generos } from '../lib/mockData';
 
