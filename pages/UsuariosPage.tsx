@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { Select } from '../components/Select';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
 import { TablaInventario } from '../components/TablaInventario';
-import { Badge } from '../components/Badge';
+import { Badge } from '../components/ui/badge';
 import { usuarios as initialUsuarios } from '../lib/mockData';
 import { Usuario } from '../types';
 

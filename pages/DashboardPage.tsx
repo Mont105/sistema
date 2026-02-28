@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookOpen, Warehouse, AlertTriangle, Package } from 'lucide-react';
 import { KPICard } from '../components/KPICard';
-import { Badge } from '../components/Badge';
+import { Badge } from '../components/ui/badge';
 import { movimientos, libros, bodegas, calcularStockPorBodega } from '../lib/mockData';
 
 export function DashboardPage() {
@@ -20,7 +20,7 @@ export function DashboardPage() {
     .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
     .slice(0, 10);
 
-  const getMovimientoColor = (tipo: string) => {
+  const getMovimientoColor = (tipo: string): 'default' | 'success' | 'warning' | 'danger' | 'primary' => {
     switch (tipo) {
       case 'entrada':
         return 'success';
@@ -100,7 +100,7 @@ export function DashboardPage() {
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={getMovimientoColor(mov.tipo) as any} size="sm">
+                    <Badge variant={getMovimientoColor(mov.tipo)}>
                       {mov.tipo.charAt(0).toUpperCase() + mov.tipo.slice(1)}
                     </Badge>
                   </td>
