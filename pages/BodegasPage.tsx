@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button';
 import { TablaInventario } from '@/components/TablaInventario';
 import { FormBodega } from '@/components/FormBodega';
 import { Badge } from '@/components/ui/badge';
-import { createBodega, getBodegas } from '@/lib/apiClient';
+import {
+  createBodega,
+  deleteBodega,
+  getBodegas,
+  getErrorMessage,
+  updateBodega,
+} from '@/lib/apiClient';
 import { bodegas as initialBodegas } from '../lib/mockData';
 import { Bodega } from '../types';
 
@@ -12,20 +18,27 @@ export function BodegasPage() {
   const [bodegas, setBodegas] = useState(initialBodegas);
   const [showForm, setShowForm] = useState(false);
   const [editingBodega, setEditingBodega] = useState<Bodega | undefined>();
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    void getBodegas()
-      .then((data) => {
+
+    const load = async () => {
+      try {
+        const data = await getBodegas();
         if (isMounted) {
           setBodegas(data);
+          setPageError(null);
         }
-      })
-      .catch(() => {
+      } catch {
         if (isMounted) {
           setBodegas(initialBodegas);
+          setPageError('No se pudo conectar al servidor. Mostrando datos mock.');
         }
-      });
+      }
+    };
+
+    void load();
 
     return () => {
       isMounted = false;
@@ -33,20 +46,35 @@ export function BodegasPage() {
   }, []);
 
   const handleSave = async (bodega: Partial<Bodega>) => {
-    if (editingBodega) {
-      setBodegas(bodegas.map((b) => (b.id === editingBodega.id ? { ...b, ...bodega } : b)));
-    } else {
-      const created = await createBodega({
-        codigo: bodega.codigo ?? '',
-        nombre: bodega.nombre ?? '',
-        direccion: bodega.direccion ?? '',
-        activo: bodega.activo ?? true,
-      });
-      setBodegas((prev) => [...prev, created]);
-    }
+    try {
+      if (editingBodega) {
+        const updated = await updateBodega(editingBodega.id, {
+          codigo: bodega.codigo,
+          nombre: bodega.nombre,
+          direccion: bodega.direccion,
+          activo: bodega.activo,
+        });
 
-    setShowForm(false);
-    setEditingBodega(undefined);
+        setBodegas((prev) =>
+          prev.map((item) => (item.id === updated.id ? updated : item)),
+        );
+      } else {
+        const created = await createBodega({
+          codigo: bodega.codigo ?? '',
+          nombre: bodega.nombre ?? '',
+          direccion: bodega.direccion ?? '',
+          activo: bodega.activo ?? true,
+        });
+        setBodegas((prev) => [...prev, created]);
+      }
+
+      setShowForm(false);
+      setEditingBodega(undefined);
+      setPageError(null);
+    } catch (error) {
+      setPageError(getErrorMessage(error));
+      throw error;
+    }
   };
 
   const handleEdit = (bodega: Bodega) => {
@@ -54,9 +82,17 @@ export function BodegasPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (bodega: Bodega) => {
-    if (confirm(`¿Estás seguro de eliminar la bodega "${bodega.nombre}"?`)) {
-      setBodegas(bodegas.filter((b) => b.id !== bodega.id));
+  const handleDelete = async (bodega: Bodega) => {
+    if (!confirm(`¿Estás seguro de eliminar la bodega "${bodega.nombre}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteBodega(bodega.id);
+      setBodegas((prev) => prev.filter((item) => item.id !== bodega.id));
+      setPageError(null);
+    } catch (error) {
+      setPageError(getErrorMessage(error));
     }
   };
 
@@ -92,6 +128,8 @@ export function BodegasPage() {
           </Button>
         )}
       </div>
+
+      {pageError && <p className="text-danger-600 text-sm">{pageError}</p>}
 
       {showForm && (
         <div className="bg-white rounded-xl border border-neutral-200 p-4 lg:p-6">

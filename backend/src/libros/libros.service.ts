@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Libro } from '@app/shared';
 import { CreateLibroDto } from './dto/create-libro.dto';
+import { UpdateLibroDto } from './dto/update-libro.dto';
 
 @Injectable()
 export class LibrosService {
@@ -29,5 +30,29 @@ export class LibrosService {
 
     this.libros.push(nuevo);
     return nuevo;
+  }
+
+  update(id: string, payload: UpdateLibroDto): Libro {
+    const index = this.libros.findIndex((libro) => libro.id === id);
+    if (index === -1) {
+      throw new NotFoundException('Libro no existe');
+    }
+
+    const updated: Libro = {
+      ...this.libros[index],
+      ...payload,
+    };
+
+    this.libros[index] = updated;
+    return updated;
+  }
+
+  remove(id: string): void {
+    const index = this.libros.findIndex((libro) => libro.id === id);
+    if (index === -1) {
+      throw new NotFoundException('Libro no existe');
+    }
+
+    this.libros.splice(index, 1);
   }
 }
