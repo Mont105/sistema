@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Scan } from 'lucide-react';
-import { Button } from './Button';
-import { Input } from './Input';
-import { Select } from './Select';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Select } from './ui/select';
 import { Movimiento } from '../types';
 import { bodegas, libros, motivos } from '../lib/mockData';
 
